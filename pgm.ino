@@ -3,8 +3,10 @@
 
 void normal();
 void cligno_orange(bool mode);
-void cligno_rouge();
+void cligno();
 void flipLed();
+void test_rouge(int tempo);
+void test_jaune(int tempo);
 
 #define EACH_DEMI_SECONDE (50) // 5ms * 100 = 500ms
 
@@ -224,7 +226,13 @@ void action()
 void loop() {
 //normal();
 //cligno_orange(true);
-cligno_rouge();
+//cligno(0);
+//cligno(1);
+//cligno(2);
+
+test_rouge(200);
+test_jaune(200);
+
 }
 
 /* ************************************************************************ */
@@ -302,24 +310,58 @@ void cligno_orange(bool mode)
 
 /* ************************************************** */
 /*                                                    */
-void cligno_rouge()
+void cligno(int feu)
 {   
 
-digitalWrite(6,  ON);
-digitalWrite(35,  ON);
-digitalWrite(40,  ON);
-digitalWrite(41,  ON);
-digitalWrite(48,  ON);
+  for (int i=0 ; i<NB_FEU ; i++){
+    switch (feu){
+      case 0 : digitalWrite(tabTeu[i].ledRouge,  ON); break;
+      case 1 : digitalWrite(tabTeu[i].ledOrange, ON); break;
+      case 2 : digitalWrite(tabTeu[i].ledVert,   ON); break;
+      default: break;
+    }
+  }
 
-    delay(100);
-
-digitalWrite(6,  OFF);
-digitalWrite(35,  OFF);
-digitalWrite(40,  OFF);
-digitalWrite(41,  OFF);
-digitalWrite(48,  OFF);
-
-
-    delay(100);
+    delay(250);
+  for (int i=0 ; i<NB_FEU ; i++){
+    switch (feu){
+      case 0 : digitalWrite(tabTeu[i].ledRouge,  OFF); break;
+      case 1 : digitalWrite(tabTeu[i].ledOrange, OFF); break;
+      case 2 : digitalWrite(tabTeu[i].ledVert,   OFF); break;
+      default: break;
+    }
+  }
+    delay(250);
 }
     
+/* ************************************************** */
+/*                                                    */
+void test_rouge(int tempo)
+{   
+  digitalWrite(tabTeu[0].ledRouge,  ON);  delay(tempo);
+  digitalWrite(tabTeu[0].ledRouge,  OFF);
+  digitalWrite(tabTeu[1].ledRouge,  ON);  delay(tempo);
+  digitalWrite(tabTeu[1].ledRouge,  OFF);
+  digitalWrite(tabTeu[2].ledRouge,  ON); delay(tempo);
+  digitalWrite(tabTeu[2].ledRouge,  OFF); 
+  digitalWrite(tabTeu[3].ledRouge,  ON); delay(tempo);
+  digitalWrite(tabTeu[3].ledRouge,  OFF);
+  digitalWrite(tabTeu[4].ledRouge,  ON); delay(tempo);
+  digitalWrite(tabTeu[4].ledRouge,  OFF);
+}
+
+/* ************************************************** */
+/*                                                    */
+void test_jaune(int tempo)
+{   
+  digitalWrite(tabTeu[0].ledOrange,  ON);  delay(tempo);
+  digitalWrite(tabTeu[0].ledOrange,  OFF);
+  digitalWrite(tabTeu[1].ledOrange,  ON);  delay(tempo);
+  digitalWrite(tabTeu[1].ledOrange,  OFF);
+  digitalWrite(tabTeu[2].ledOrange,  ON); delay(tempo);
+  digitalWrite(tabTeu[2].ledOrange,  OFF); 
+  digitalWrite(tabTeu[3].ledOrange,  ON); delay(tempo);
+  digitalWrite(tabTeu[3].ledOrange,  OFF);
+  digitalWrite(tabTeu[4].ledOrange,  ON); delay(tempo);
+  digitalWrite(tabTeu[4].ledOrange,  OFF);
+}
