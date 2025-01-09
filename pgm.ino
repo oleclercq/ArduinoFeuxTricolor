@@ -1,31 +1,36 @@
-#define ORANGE_2  30
-#define VERT_2  32
-#define ROUGE_2  34
-#define ORANGE_1  36
-#define VERT_1  38
-#define ROUGE_1  40
+#include "assigne.h"
 
-#define ON  LOW
-#define OFF HIGH 
-
-#define NB_FEU 2 
 
 void normal();
 void cligno_orange(bool mode);
 void cligno_rouge();
 void flipLed();
 
-#define EACH_DEMI_SECONDE (100) // 5ms * 100 = 500ms
+#define EACH_DEMI_SECONDE (50) // 5ms * 100 = 500ms
 
 enum MODE { VERT1, ORANGE1, ROUGE1, TEMPOROUGE1, VERT2, ORANGE2, ROUGE2, TEMPOROUGE2};
 enum MODE mode = VERT1;
 
-struct ST_FEU { unsigned char ledRouge,
-                unsigned char ledOrange,
-                unsigned char ledVert};
+struct ST_FEU { unsigned char ledRouge;
+
+                unsigned char ledOrange;
+
+                unsigned char ledVert;};
 
 struct ST_FEU tabTeu[NB_FEU] = {  ROUGE_1, ORANGE_1, VERT_1,
-                                  ROUGE_2, ORANGE_2, VERT_2};
+                                  ROUGE_2, ORANGE_2, VERT_2,
+                                  ROUGE_3, ORANGE_3, VERT_3,
+                                  ROUGE_4, ORANGE_4, VERT_4,
+                                  ROUGE_5, ORANGE_5, VERT_5,
+                                  ROUGE_6, ORANGE_6, VERT_6,
+                                  ROUGE_7, ORANGE_7, VERT_7,
+                                  ROUGE_8, ORANGE_8, VERT_8,
+                                  ROUGE_9, ORANGE_9, VERT_9,
+                                  ROUGE_10, ORANGE_10, VERT_10,
+                                  ROUGE_11, ORANGE_11, VERT_12,
+                                  ROUGE_12, ORANGE_12, VERT_12,
+                                
+                                  };
 
 
 
@@ -34,15 +39,15 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
 for (int i=0 ; i<NB_FEU ; i++){
-  pinMode(tabTeu[i].ledRouge, OUTPUT);
+  pinMode(tabTeu[i].ledRouge,  OUTPUT);
   pinMode(tabTeu[i].ledOrange, OUTPUT);
-  pinMode(tabTeu[i].ledVert, OUTPUT);
+  pinMode(tabTeu[i].ledVert,   OUTPUT);
 }
 
 for (int i=0 ; i<NB_FEU ; i++){
-  digitalWrite(tabTeu[i].ledRouge, OFF);
+  digitalWrite(tabTeu[i].ledRouge,  OFF);
   digitalWrite(tabTeu[i].ledOrange, OFF);
-  digitalWrite(tabTeu[i].ledVert, OFF);
+  digitalWrite(tabTeu[i].ledVert,   OFF);
 }
 
 
@@ -62,21 +67,98 @@ for (int i=0 ; i<NB_FEU ; i++){
 
 
 /* ************************************************************************ */
-/* ON EST APPELE DANS CETTE FONCTION TOUTES LES 5ms PAR LE TIMER INTERNE DU MICROP-P
+/* ON EST APPELE DANS CETTE FONCTION TOUTES LES 5ms PAR LE TIMER INTERNE DU MICROP-P */
 /* ************************************************************************ */
 ISR(TIMER1_COMPA_vect) // 16 bit timer 1 compare 1A match
 {
     static uint16_t iDemiSeconde = EACH_DEMI_SECONDE;
     if (--iDemiSeconde == 0 ) {
         flipLed();
-        action();
+        //action();
+        //action_test2();
         iDemiSeconde = EACH_DEMI_SECONDE ;
     }
 }
 
+/* ************************************************************************ */
+/* Action_test2()                                                           */
+/* ************************************************************************ */
+void action_test2()
+{
+    static int led = 0;
+    if (led) {/*
+      digitalWrite(ROUGE_1, ON );
+      digitalWrite(ROUGE_2, ON );
+      digitalWrite(ROUGE_3, ON );
+      digitalWrite(ROUGE_4, ON );
+      digitalWrite(ROUGE_5, ON );
+      digitalWrite(ROUGE_6, ON );
+      digitalWrite(ROUGE_7, ON );
+      digitalWrite(ROUGE_8, ON );      
+      digitalWrite(ROUGE_9, ON );
+      digitalWrite(ROUGE_10, ON );
+      digitalWrite(ROUGE_11, ON );
+      digitalWrite(ROUGE_12, ON );*/
+
+      digitalWrite(VERT_3, ON );
+      /*digitalWrite(VERT_2, ON );
+      digitalWrite(VERT_3, ON );
+      digitalWrite(VERT_4, ON );
+      digitalWrite(VERT_5, ON );
+      digitalWrite(VERT_6, ON );
+      digitalWrite(VERT_7, ON );
+      digitalWrite(VERT_8, ON );      
+      digitalWrite(VERT_9, ON );
+      digitalWrite(VERT_10, ON );
+      digitalWrite(VERT_11, ON );
+      digitalWrite(VERT_12, ON );*/
+
+      /*for (int i=5; i<32 ; i++)
+      {
+        digitalWrite(22+i, ON );
+      }*/
+    } else {/*
+      digitalWrite(ROUGE_1, OFF );
+      digitalWrite(ROUGE_2, OFF );
+      digitalWrite(ROUGE_3, OFF );
+      digitalWrite(ROUGE_4, OFF );
+      digitalWrite(ROUGE_5, OFF );
+      digitalWrite(ROUGE_6, OFF );
+      digitalWrite(ROUGE_7, OFF );
+      digitalWrite(ROUGE_8, OFF );      
+      digitalWrite(ROUGE_9, OFF );
+      digitalWrite(ROUGE_10, OFF );
+      digitalWrite(ROUGE_11, OFF );
+      digitalWrite(ROUGE_12, OFF );*/
+
+            digitalWrite(VERT_3, OFF );
+      /*digitalWrite(VERT_2, OFF );
+      digitalWrite(VERT_3, OFF );
+      digitalWrite(VERT_4, OFF );
+      digitalWrite(VERT_5, OFF );
+      digitalWrite(VERT_6, OFF );
+      digitalWrite(VERT_7, OFF );
+      digitalWrite(VERT_8, OFF );      
+      digitalWrite(VERT_9, OFF );
+      digitalWrite(VERT_10, OFF );
+      digitalWrite(VERT_11, OFF );
+      digitalWrite(VERT_12, OFF );*/
+/*
+      for (int i=5; i<32 ; i++)
+      {
+        digitalWrite(22+i, OFF );
+      }*/
+
+    }
+    led = 1-led;
+}
+
+/* ************************************************************************ */
+/* Action()                                                                 */
+/* ************************************************************************ */
 void action()
 {
-      switch()
+      switch(mode)
       {
         case VERT1:   digitalWrite(ROUGE_2,   ON );
                       digitalWrite(ORANGE_2,  OFF );
@@ -141,8 +223,8 @@ void action()
 /*                                                    */
 void loop() {
 //normal();
-cligno_orange(true);
-//cligno_rouge();
+//cligno_orange(true);
+cligno_rouge();
 }
 
 /* ************************************************************************ */
@@ -222,12 +304,22 @@ void cligno_orange(bool mode)
 /*                                                    */
 void cligno_rouge()
 {   
-    digitalWrite(ROUGE_1,  OFF);
-    digitalWrite(ROUGE_2,  ON);
-    delay(300);
 
-    digitalWrite(ROUGE_1,  ON);
-    digitalWrite(ROUGE_2,  OFF);
-    delay(300);
+digitalWrite(6,  ON);
+digitalWrite(35,  ON);
+digitalWrite(40,  ON);
+digitalWrite(41,  ON);
+digitalWrite(48,  ON);
+
+    delay(100);
+
+digitalWrite(6,  OFF);
+digitalWrite(35,  OFF);
+digitalWrite(40,  OFF);
+digitalWrite(41,  OFF);
+digitalWrite(48,  OFF);
+
+
+    delay(100);
 }
     
