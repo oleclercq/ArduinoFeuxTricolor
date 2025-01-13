@@ -5,10 +5,10 @@ void cligno_orange(int tempo);
 void cligno_all(int tempo);
 void aleatoire(int tempo);
 
-#define EACH_DEMI_SECONDE (50) // 5ms * 100 = 500ms
+#define EACH_DEMI_SECONDE (10) // 5ms * 100 = 500ms
 
-enum MODE { VERT1, ORANGE1, ROUGE1, TEMPOROUGE1, VERT2, ORANGE2, ROUGE2, TEMPOROUGE2};
-enum MODE mode = VERT1;
+enum MODE { VERT, ORANGE, ROUGE};
+enum MODE gMode = VERT;
 
 struct ST_FEU { unsigned char ledRouge;
                 unsigned char ledOrange;
@@ -42,7 +42,7 @@ for (int i=0 ; i<NB_FEU ; i++){
 }
 
 for (int i=0 ; i<NB_FEU ; i++){
-  digitalWrite(tabFeu[i].ledRouge,  OFF);
+  digitalWrite(tabFeu[i].ledRouge,  ON);
   digitalWrite(tabFeu[i].ledOrange, OFF);
   digitalWrite(tabFeu[i].ledVert,   OFF);
 }
@@ -71,8 +71,7 @@ ISR(TIMER1_COMPA_vect) // 16 bit timer 1 compare 1A match
     static uint16_t iDemiSeconde = EACH_DEMI_SECONDE;
     if (--iDemiSeconde == 0 ) {
         flipLed();
-        //action();
-        //action_test2();
+        sequence();
         iDemiSeconde = EACH_DEMI_SECONDE ;
     }
 }
@@ -150,78 +149,12 @@ void action_test2()
     led = 1-led;
 }
 
-/* ************************************************************************ */
-/* Action()                                                                 */
-/* ************************************************************************ */
-void action()
-{
-      switch(mode)
-      {
-        case VERT1:   digitalWrite(ROUGE_2,   ON );
-                      digitalWrite(ORANGE_2,  OFF );
-                      digitalWrite(VERT_2,    OFF );
-                      digitalWrite(ROUGE_1,   OFF );
-                      digitalWrite(ORANGE_1,  OFF );
-                      digitalWrite(VERT_1,    ON );
-                      mode =  ORANGE1 ;           
-                      break;
-
-        case ORANGE1: digitalWrite(ROUGE_2,   ON );
-                      digitalWrite(ORANGE_2,  OFF );
-                      digitalWrite(VERT_2,    OFF );
-                      digitalWrite(ROUGE_1,   OFF );
-                      digitalWrite(ORANGE_1,  ON );
-                      digitalWrite(VERT_1,    OFF );
-                      mode =  ROUGE1 ;           
-                      break;
-
-        case ROUGE1:  digitalWrite(ROUGE_2,   ON );
-                      digitalWrite(ORANGE_2,  OFF );
-                      digitalWrite(VERT_2,    OFF );
-                      digitalWrite(ROUGE_1,   ON );
-                      digitalWrite(ORANGE_1,  OFF );
-                      digitalWrite(VERT_1,    OFF );
-                      mode =  TEMPOROUGE1 ;           
-                      break;
-
-        case VERT2:   digitalWrite(ROUGE_2,   OFF );
-                      digitalWrite(ORANGE_2,  OFF );
-                      digitalWrite(VERT_2,    ON );
-                      digitalWrite(ROUGE_1,   ON );
-                      digitalWrite(ORANGE_1,  OFF );
-                      digitalWrite(VERT_1,    OFF );
-                      mode =  ORANGE2 ;           
-                      break;
-
-        case ORANGE2:   digitalWrite(ROUGE_2,   OFF );
-                        digitalWrite(ORANGE_2,  ON );
-                        digitalWrite(VERT_2,    OFF );
-                        digitalWrite(ROUGE_1,   ON );
-                        digitalWrite(ORANGE_1,  OFF );
-                        digitalWrite(VERT_1,    OFF );
-                        mode =  ROUGE2 ;           
-                        break;
-
-        case ROUGE2:    digitalWrite(ROUGE_2,   OFF );
-                        digitalWrite(ORANGE_2,  ON );
-                        digitalWrite(VERT_2,    OFF );
-                        digitalWrite(ROUGE_1,   ON );
-                        digitalWrite(ORANGE_1,  OFF );
-                        digitalWrite(VERT_1,    OFF );
-                        mode =  ROUGE2 ;           
-                        break;
-
-        case TEMPOROUGE2: break;
-        default: break;
-      }
-}
-
 /* ************************************************** */
 /*                                                    */
 void loop() {
 //cligno_orange(500);
 //cligno_all(250,0);
-aleatoire(100);
+//aleatoire(100);
 
 }
 
@@ -298,3 +231,50 @@ void aleatoire(int tempo)
   delay(tempo);
 }
 
+/* ************************************************** */
+/*                                                    */
+void sequence()
+{
+  static int nextFeu = 0;
+  static int tempo = 10 ;
+  static int feu = 0 ;
+
+  switch(gMode){
+    case VERT :  
+        digitalWrite(tabFeu[feu].ledRouge,  OFF); 
+        digitalWrite(tabFeu[feu].ledVert,   ON); 
+        if (--tempo <= 0 ){ 
+          tempo = 2 ; // Duree prochaine étape
+          gMode = ORANGE;
+        }
+        break ;
+
+    case ORANGE :  
+        digitalWrite(tabFeu[feu].ledVert,   OFF); 
+        digitalWrite(tabFeu[feu].ledOrange,   ON); 
+        if (--tempo <= 0 ){ 
+          tempo = 5 ; // Duree prochaine étape
+          gMode = ROUGE;
+        }
+        break ;
+
+    case ROUGE :  
+        digitalWrite(tabFeu[feu].ledOrange,   OFF); 
+        digitalWrite(tabFeu[feu].ledRouge,   ON); 
+        if (--tempo <= 0 ){ 
+          tempo = 5 ; // Duree prochaine étape
+          gMode = VERT;
+          nextFeu = true;
+        }
+        break ;
+          break ;
+    default : break;
+  }
+  if (nextFeu){
+    nextFeu = false ;
+    feu++ ;
+    if (feu == NB_FEU){
+      feu = 0;
+    } 
+  }
+}

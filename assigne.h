@@ -35,15 +35,7 @@
 #define VERT_4  52  // OK
 #define VERT_3  53   // OK 
 
-
-
-
-
-
-
-
-
-
 #define ON  LOW
 #define OFF HIGH 
-#define NB_FEU 12 
+#define NB_FEU 10
+#define NB_FEU_MAX 12
