@@ -1,12 +1,9 @@
 #include "assigne.h"
 
 
-void normal();
-void cligno_orange(bool mode);
-void cligno();
-void flipLed();
-void test_rouge(int tempo);
-void test_jaune(int tempo);
+void cligno_orange(int tempo);
+void cligno_all(int tempo);
+void aleatoire(int tempo);
 
 #define EACH_DEMI_SECONDE (50) // 5ms * 100 = 500ms
 
@@ -14,12 +11,10 @@ enum MODE { VERT1, ORANGE1, ROUGE1, TEMPOROUGE1, VERT2, ORANGE2, ROUGE2, TEMPORO
 enum MODE mode = VERT1;
 
 struct ST_FEU { unsigned char ledRouge;
-
                 unsigned char ledOrange;
-
                 unsigned char ledVert;};
 
-struct ST_FEU tabTeu[NB_FEU] = {  ROUGE_1, ORANGE_1, VERT_1,
+struct ST_FEU tabFeu[NB_FEU] = {  ROUGE_1, ORANGE_1, VERT_1,
                                   ROUGE_2, ORANGE_2, VERT_2,
                                   ROUGE_3, ORANGE_3, VERT_3,
                                   ROUGE_4, ORANGE_4, VERT_4,
@@ -41,15 +36,15 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
 for (int i=0 ; i<NB_FEU ; i++){
-  pinMode(tabTeu[i].ledRouge,  OUTPUT);
-  pinMode(tabTeu[i].ledOrange, OUTPUT);
-  pinMode(tabTeu[i].ledVert,   OUTPUT);
+  pinMode(tabFeu[i].ledRouge,  OUTPUT);
+  pinMode(tabFeu[i].ledOrange, OUTPUT);
+  pinMode(tabFeu[i].ledVert,   OUTPUT);
 }
 
 for (int i=0 ; i<NB_FEU ; i++){
-  digitalWrite(tabTeu[i].ledRouge,  OFF);
-  digitalWrite(tabTeu[i].ledOrange, OFF);
-  digitalWrite(tabTeu[i].ledVert,   OFF);
+  digitalWrite(tabFeu[i].ledRouge,  OFF);
+  digitalWrite(tabFeu[i].ledOrange, OFF);
+  digitalWrite(tabFeu[i].ledVert,   OFF);
 }
 
 
@@ -224,14 +219,9 @@ void action()
 /* ************************************************** */
 /*                                                    */
 void loop() {
-//normal();
-//cligno_orange(true);
-//cligno(0);
-//cligno(1);
-//cligno(2);
-
-test_rouge(200);
-test_jaune(200);
+//cligno_orange(500);
+//cligno_all(250,0);
+aleatoire(100);
 
 }
 
@@ -251,117 +241,60 @@ void flipLed()
 
 /* ************************************************** */
 /*                                                    */
-void normal()
-{
-
-  // put your main code here, to run repeatedly:
-  digitalWrite(LED_BUILTIN, HIGH); 
-   digitalWrite(ROUGE_2, ON);
-   digitalWrite(ROUGE_1, OFF);
-   digitalWrite(VERT_1,  ON);
-   delay(2000);
-   digitalWrite(LED_BUILTIN, LOW); 
-
-
-   digitalWrite(VERT_1,  OFF);
-   digitalWrite(ORANGE_1,  ON);
-   delay(500);
-
-   digitalWrite(ORANGE_1,  OFF);
-   digitalWrite(ROUGE_1,  ON);
-   delay(500);
-
-   digitalWrite(ROUGE_2,  OFF);
-   digitalWrite(VERT_2,  ON);
-   delay(2000);
-
-   digitalWrite(VERT_2,  OFF);
-   digitalWrite(ORANGE_2,  ON);
-   delay(500);
-
-   digitalWrite(ORANGE_2,  OFF);
-   digitalWrite(ROUGE_2,  ON);
-   delay(200);
-   }
 
 /* ************************************************** */
 /*                                                    */
-void cligno_orange(bool mode)
+void cligno_orange(int tempo)
 {
-  if (mode)
-  {
-   digitalWrite(ORANGE_1,  ON);
-   digitalWrite(ORANGE_2,  ON);
-   delay(500);
-
-   digitalWrite(ORANGE_1,  OFF);
-   digitalWrite(ORANGE_2,  OFF);
-   delay(500);
-  }else
-  {
-   digitalWrite(ORANGE_1,  OFF);
-   digitalWrite(ORANGE_2,  ON);
-   delay(100);
-
-   digitalWrite(ORANGE_1,  ON);
-   digitalWrite(ORANGE_2,  OFF);
-   delay(100);
-}}
+  for (int i=0 ; i<NB_FEU ; i++){
+    digitalWrite(tabFeu[i].ledOrange, ON); 
+  }
+  delay(tempo);
+   
+  for (int i=0 ; i<NB_FEU ; i++){
+   digitalWrite(tabFeu[i].ledOrange, OFF); 
+  }
+  delay(tempo);
+  }
+  
 
 /* ************************************************** */
 /*                                                    */
-void cligno(int feu)
+void cligno_all(int tempo, int couleur )
 {   
 
   for (int i=0 ; i<NB_FEU ; i++){
-    switch (feu){
-      case 0 : digitalWrite(tabTeu[i].ledRouge,  ON); break;
-      case 1 : digitalWrite(tabTeu[i].ledOrange, ON); break;
-      case 2 : digitalWrite(tabTeu[i].ledVert,   ON); break;
+    switch (couleur){
+      case 0 : digitalWrite(tabFeu[i].ledRouge,  ON); break;
+      case 1 : digitalWrite(tabFeu[i].ledOrange, ON); break;
+      case 2 : digitalWrite(tabFeu[i].ledVert,   ON); break;
       default: break;
     }
   }
 
-    delay(250);
+    delay(tempo);
   for (int i=0 ; i<NB_FEU ; i++){
-    switch (feu){
-      case 0 : digitalWrite(tabTeu[i].ledRouge,  OFF); break;
-      case 1 : digitalWrite(tabTeu[i].ledOrange, OFF); break;
-      case 2 : digitalWrite(tabTeu[i].ledVert,   OFF); break;
+    switch (couleur){
+      case 0 : digitalWrite(tabFeu[i].ledRouge,  OFF); break;
+      case 1 : digitalWrite(tabFeu[i].ledOrange, OFF); break;
+      case 2 : digitalWrite(tabFeu[i].ledVert,   OFF); break;
       default: break;
     }
   }
-    delay(250);
+    delay(tempo);
 }
     
-/* ************************************************** */
-/*                                                    */
-void test_rouge(int tempo)
-{   
-  digitalWrite(tabTeu[0].ledRouge,  ON);  delay(tempo);
-  digitalWrite(tabTeu[0].ledRouge,  OFF);
-  digitalWrite(tabTeu[1].ledRouge,  ON);  delay(tempo);
-  digitalWrite(tabTeu[1].ledRouge,  OFF);
-  digitalWrite(tabTeu[2].ledRouge,  ON); delay(tempo);
-  digitalWrite(tabTeu[2].ledRouge,  OFF); 
-  digitalWrite(tabTeu[3].ledRouge,  ON); delay(tempo);
-  digitalWrite(tabTeu[3].ledRouge,  OFF);
-  digitalWrite(tabTeu[4].ledRouge,  ON); delay(tempo);
-  digitalWrite(tabTeu[4].ledRouge,  OFF);
-}
+
 
 /* ************************************************** */
 /*                                                    */
-void test_jaune(int tempo)
-{   
-  digitalWrite(tabTeu[0].ledOrange,  ON);  delay(tempo);
-  digitalWrite(tabTeu[0].ledOrange,  OFF);
-  digitalWrite(tabTeu[1].ledOrange,  ON);  delay(tempo);
-  digitalWrite(tabTeu[1].ledOrange,  OFF);
-  digitalWrite(tabTeu[2].ledOrange,  ON); delay(tempo);
-  digitalWrite(tabTeu[2].ledOrange,  OFF); 
-  digitalWrite(tabTeu[3].ledOrange,  ON); delay(tempo);
-  digitalWrite(tabTeu[3].ledOrange,  OFF);
-  digitalWrite(tabTeu[4].ledOrange,  ON); delay(tempo);
-  digitalWrite(tabTeu[4].ledOrange,  OFF);
+void aleatoire(int tempo)
+{ 
+  for (int i=0 ; i<NB_FEU ; i++){
+    digitalWrite(tabFeu[i].ledRouge,  random(0,15));
+    digitalWrite(tabFeu[i].ledOrange, random(0,15));
+    digitalWrite(tabFeu[i].ledVert,   random(0,15));
+  }
+  delay(tempo);
 }
+
