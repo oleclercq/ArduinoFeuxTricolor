@@ -4,6 +4,7 @@
 void cligno_orange(int tempo);
 void cligno_all(int tempo);
 void aleatoire(int tempo);
+void k2000(int tempo);
 
 #define EACH_DEMI_SECONDE (10) // 5ms * 100 = 500ms
 
@@ -14,7 +15,7 @@ struct ST_FEU { unsigned char ledRouge;
                 unsigned char ledOrange;
                 unsigned char ledVert;};
 
-struct ST_FEU tabFeu[NB_FEU] = {  ROUGE_1, ORANGE_1, VERT_1,
+struct ST_FEU tabFeu[NB_FEU_MAX] = {  ROUGE_1, ORANGE_1, VERT_1,
                                   ROUGE_2, ORANGE_2, VERT_2,
                                   ROUGE_3, ORANGE_3, VERT_3,
                                   ROUGE_4, ORANGE_4, VERT_4,
@@ -35,13 +36,13 @@ void setup() {
   // put your setup code here, to run once:
   pinMode(LED_BUILTIN, OUTPUT);
 
-for (int i=0 ; i<NB_FEU ; i++){
+for (int i=0 ; i<NB_FEU_MAX ; i++){
   pinMode(tabFeu[i].ledRouge,  OUTPUT);
   pinMode(tabFeu[i].ledOrange, OUTPUT);
   pinMode(tabFeu[i].ledVert,   OUTPUT);
 }
 
-for (int i=0 ; i<NB_FEU ; i++){
+for (int i=0 ; i<NB_FEU_MAX ; i++){
   digitalWrite(tabFeu[i].ledRouge,  ON);
   digitalWrite(tabFeu[i].ledOrange, OFF);
   digitalWrite(tabFeu[i].ledVert,   OFF);
@@ -71,83 +72,11 @@ ISR(TIMER1_COMPA_vect) // 16 bit timer 1 compare 1A match
     static uint16_t iDemiSeconde = EACH_DEMI_SECONDE;
     if (--iDemiSeconde == 0 ) {
         flipLed();
-        sequence();
+        //sequence();
         iDemiSeconde = EACH_DEMI_SECONDE ;
     }
 }
 
-/* ************************************************************************ */
-/* Action_test2()                                                           */
-/* ************************************************************************ */
-void action_test2()
-{
-    static int led = 0;
-    if (led) {/*
-      digitalWrite(ROUGE_1, ON );
-      digitalWrite(ROUGE_2, ON );
-      digitalWrite(ROUGE_3, ON );
-      digitalWrite(ROUGE_4, ON );
-      digitalWrite(ROUGE_5, ON );
-      digitalWrite(ROUGE_6, ON );
-      digitalWrite(ROUGE_7, ON );
-      digitalWrite(ROUGE_8, ON );      
-      digitalWrite(ROUGE_9, ON );
-      digitalWrite(ROUGE_10, ON );
-      digitalWrite(ROUGE_11, ON );
-      digitalWrite(ROUGE_12, ON );*/
-
-      digitalWrite(VERT_3, ON );
-      /*digitalWrite(VERT_2, ON );
-      digitalWrite(VERT_3, ON );
-      digitalWrite(VERT_4, ON );
-      digitalWrite(VERT_5, ON );
-      digitalWrite(VERT_6, ON );
-      digitalWrite(VERT_7, ON );
-      digitalWrite(VERT_8, ON );      
-      digitalWrite(VERT_9, ON );
-      digitalWrite(VERT_10, ON );
-      digitalWrite(VERT_11, ON );
-      digitalWrite(VERT_12, ON );*/
-
-      /*for (int i=5; i<32 ; i++)
-      {
-        digitalWrite(22+i, ON );
-      }*/
-    } else {/*
-      digitalWrite(ROUGE_1, OFF );
-      digitalWrite(ROUGE_2, OFF );
-      digitalWrite(ROUGE_3, OFF );
-      digitalWrite(ROUGE_4, OFF );
-      digitalWrite(ROUGE_5, OFF );
-      digitalWrite(ROUGE_6, OFF );
-      digitalWrite(ROUGE_7, OFF );
-      digitalWrite(ROUGE_8, OFF );      
-      digitalWrite(ROUGE_9, OFF );
-      digitalWrite(ROUGE_10, OFF );
-      digitalWrite(ROUGE_11, OFF );
-      digitalWrite(ROUGE_12, OFF );*/
-
-            digitalWrite(VERT_3, OFF );
-      /*digitalWrite(VERT_2, OFF );
-      digitalWrite(VERT_3, OFF );
-      digitalWrite(VERT_4, OFF );
-      digitalWrite(VERT_5, OFF );
-      digitalWrite(VERT_6, OFF );
-      digitalWrite(VERT_7, OFF );
-      digitalWrite(VERT_8, OFF );      
-      digitalWrite(VERT_9, OFF );
-      digitalWrite(VERT_10, OFF );
-      digitalWrite(VERT_11, OFF );
-      digitalWrite(VERT_12, OFF );*/
-/*
-      for (int i=5; i<32 ; i++)
-      {
-        digitalWrite(22+i, OFF );
-      }*/
-
-    }
-    led = 1-led;
-}
 
 /* ************************************************** */
 /*                                                    */
@@ -155,6 +84,7 @@ void loop() {
 //cligno_orange(500);
 //cligno_all(250,0);
 //aleatoire(100);
+k2000(50);
 
 }
 
@@ -230,6 +160,39 @@ void aleatoire(int tempo)
   }
   delay(tempo);
 }
+
+/* ************************************************** */
+/*                                                    */
+void k2000(int tempo)
+{ 
+    // ALLER
+    for (int i=0 ; i < NB_FEU ; i++){
+      digitalWrite(tabFeu[i].ledRouge,  ON);
+      if (i == 0){
+       digitalWrite(tabFeu[NB_FEU-1].ledRouge,  OFF); 
+      } else {
+        digitalWrite(tabFeu[i-1].ledRouge,  OFF);
+      }
+      delay(tempo);
+    }
+
+    // RETOUR
+    for (int i=NB_FEU-1 ; i >= 0 ; i--){
+      digitalWrite(tabFeu[i].ledRouge,  ON);
+      if (i == NB_FEU-1){
+       digitalWrite(tabFeu[0].ledRouge,  OFF); 
+      } else {
+        digitalWrite(tabFeu[i+1].ledRouge,  OFF);
+      }
+      delay(tempo);
+    }
+
+
+
+
+
+}
+
 
 /* ************************************************** */
 /*                                                    */
