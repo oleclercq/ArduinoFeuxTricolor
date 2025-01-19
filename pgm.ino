@@ -5,6 +5,7 @@ void cligno_orange(int tempo);
 void cligno_all(int tempo);
 void aleatoire(int tempo);
 void k2000(int tempo);
+void test_sw();
 
 #define EACH_DEMI_SECONDE (10) // 5ms * 100 = 500ms
 
@@ -25,8 +26,8 @@ struct ST_FEU tabFeu[NB_FEU_MAX] = {  ROUGE_1, ORANGE_1, VERT_1,
                                   ROUGE_8, ORANGE_8, VERT_8,
                                   ROUGE_9, ORANGE_9, VERT_9,
                                   ROUGE_10, ORANGE_10, VERT_10,
-                                  ROUGE_11, ORANGE_11, VERT_12,
-                                  ROUGE_12, ORANGE_12, VERT_12,
+                                  ROUGE_11, ORANGE_11, VERT_11,
+                                  // ROUGE_12, ORANGE_12, VERT_12,
                                 
                                   };
 
@@ -41,12 +42,18 @@ for (int i=0 ; i<NB_FEU_MAX ; i++){
   pinMode(tabFeu[i].ledOrange, OUTPUT);
   pinMode(tabFeu[i].ledVert,   OUTPUT);
 }
+  pinMode(SW1,   INPUT_PULLUP);
+  pinMode(SW2,   INPUT_PULLUP);
+  pinMode(SW3,   INPUT_PULLUP);
+  pinMode(SW4,   INPUT_PULLUP);
 
 for (int i=0 ; i<NB_FEU_MAX ; i++){
   digitalWrite(tabFeu[i].ledRouge,  ON);
   digitalWrite(tabFeu[i].ledOrange, OFF);
   digitalWrite(tabFeu[i].ledVert,   OFF);
 }
+
+
 
 
   // ================================================================================
@@ -84,7 +91,8 @@ void loop() {
 //cligno_orange(500);
 //cligno_all(250,0);
 //aleatoire(100);
-k2000(50);
+//k2000(50);
+test_sw();
 
 }
 
@@ -241,3 +249,5 @@ void sequence()
     } 
   }
 }
+
+test_sw();
