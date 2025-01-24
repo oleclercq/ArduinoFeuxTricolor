@@ -24,7 +24,7 @@
 #define ORANGE_3  41 // OK
 #define VERT_10  42 // OK
 #define VERT_9  43 // OK
-g//#define VERT_12  44
+//#define VERT_12  44
 #define VERT_11  45  // OK
 #define VERT_7  46 //ok
 #define VERT_5  47 //OK
@@ -38,9 +38,10 @@ g//#define VERT_12  44
 #define SW1   44
 #define SW2   35
 #define SW3    7
-#define SW4    6
+#define SW4    3
 
 #define ON  LOW
 #define OFF HIGH 
+#define NB_SW 4
 #define NB_FEU 10
 #define NB_FEU_MAX 11

@@ -16,6 +16,14 @@ struct ST_FEU { unsigned char ledRouge;
                 unsigned char ledOrange;
                 unsigned char ledVert;};
 
+struct ST_SW {  unsigned char pin;
+                bool etat; };
+
+struct ST_SW tabSw[NB_SW] { SW1, OFF,
+                            SW2, OFF,
+                            SW3, OFF,
+                            SW4, OFF };
+
 struct ST_FEU tabFeu[NB_FEU_MAX] = {  ROUGE_1, ORANGE_1, VERT_1,
                                   ROUGE_2, ORANGE_2, VERT_2,
                                   ROUGE_3, ORANGE_3, VERT_3,
@@ -28,10 +36,7 @@ struct ST_FEU tabFeu[NB_FEU_MAX] = {  ROUGE_1, ORANGE_1, VERT_1,
                                   ROUGE_10, ORANGE_10, VERT_10,
                                   ROUGE_11, ORANGE_11, VERT_11,
                                   // ROUGE_12, ORANGE_12, VERT_12,
-                                
                                   };
-
-
 
 void setup() {
   // put your setup code here, to run once:
@@ -41,20 +46,16 @@ for (int i=0 ; i<NB_FEU_MAX ; i++){
   pinMode(tabFeu[i].ledRouge,  OUTPUT);
   pinMode(tabFeu[i].ledOrange, OUTPUT);
   pinMode(tabFeu[i].ledVert,   OUTPUT);
-}
-  pinMode(SW1,   INPUT_PULLUP);
-  pinMode(SW2,   INPUT_PULLUP);
-  pinMode(SW3,   INPUT_PULLUP);
-  pinMode(SW4,   INPUT_PULLUP);
 
-for (int i=0 ; i<NB_FEU_MAX ; i++){
-  digitalWrite(tabFeu[i].ledRouge,  ON);
+  digitalWrite(tabFeu[i].ledRouge,  OFF);
   digitalWrite(tabFeu[i].ledOrange, OFF);
   digitalWrite(tabFeu[i].ledVert,   OFF);
 }
 
-
-
+for (int i=0 ; i<NB_SW ; i++){
+  pinMode(tabSw[i].pin,   INPUT_PULLUP);
+  tabSw[i].etat = false;
+}
 
   // ================================================================================
 // TIMER 1 16BIT
@@ -82,6 +83,15 @@ ISR(TIMER1_COMPA_vect) // 16 bit timer 1 compare 1A match
         //sequence();
         iDemiSeconde = EACH_DEMI_SECONDE ;
     }
+
+    for (int i=0 ; i<NB_SW ; i++) {
+       if (tabSw[i].etat){
+        digitalWrite(tabFeu[i].ledOrange, ON );
+        tabSw[i].etat = false;
+    } else {
+        digitalWrite(tabFeu[i].ledOrange, OFF );
+       }
+    };
 }
 
 
@@ -91,9 +101,12 @@ void loop() {
 //cligno_orange(500);
 //cligno_all(250,0);
 //aleatoire(100);
-//k2000(50);
-test_sw();
-
+k2000(30);
+  for (int i=0 ; i<NB_SW ; i++) {
+    if (!digitalRead(tabSw[i].pin) ){
+        tabSw[i].etat = true;
+    }
+  }
 }
 
 /* ************************************************************************ */
@@ -250,4 +263,11 @@ void sequence()
   }
 }
 
-test_sw();
+void test_sw()
+{
+    digitalWrite(tabFeu[4].ledOrange,   digitalRead(SW4));  
+    digitalWrite(tabFeu[5].ledOrange,   digitalRead(SW3));  
+    digitalWrite(tabFeu[6].ledOrange,   digitalRead(SW2));  
+    digitalWrite(tabFeu[7].ledOrange,   digitalRead(SW1));  
+
+} 
