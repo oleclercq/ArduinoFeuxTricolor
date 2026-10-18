@@ -7,7 +7,7 @@ void aleatoire(int tempo);
 void k2000(int tempo);
 void test_sw();
 
-#define EACH_DEMI_SECONDE (10) // 5ms * 100 = 500ms
+#define EACH_DEMI_SECONDE (50) // 5ms * 100 = 500ms
 
 enum MODE { VERT, ORANGE, ROUGE};
 enum MODE gMode = VERT;
@@ -47,7 +47,7 @@ for (int i=0 ; i<NB_FEU_MAX ; i++){
   pinMode(tabFeu[i].ledOrange, OUTPUT);
   pinMode(tabFeu[i].ledVert,   OUTPUT);
 
-  digitalWrite(tabFeu[i].ledRouge,  OFF);
+  digitalWrite(tabFeu[i].ledRouge,  ON);
   digitalWrite(tabFeu[i].ledOrange, OFF);
   digitalWrite(tabFeu[i].ledVert,   OFF);
 }
@@ -80,17 +80,15 @@ ISR(TIMER1_COMPA_vect) // 16 bit timer 1 compare 1A match
     static uint16_t iDemiSeconde = EACH_DEMI_SECONDE;
     if (--iDemiSeconde == 0 ) {
         flipLed();
-        //sequence();
+        sequence();
         iDemiSeconde = EACH_DEMI_SECONDE ;
     }
 
     for (int i=0 ; i<NB_SW ; i++) {
        if (tabSw[i].etat){
-        digitalWrite(tabFeu[i].ledOrange, ON );
+        //digitalWrite(tabFeu[i].ledOrange, ON );
         tabSw[i].etat = false;
-    } else {
-        digitalWrite(tabFeu[i].ledOrange, OFF );
-       }
+    }
     };
 }
 
@@ -101,7 +99,7 @@ void loop() {
 //cligno_orange(500);
 //cligno_all(250,0);
 //aleatoire(100);
-k2000(30);
+//k2000(30);
   for (int i=0 ; i<NB_SW ; i++) {
     if (!digitalRead(tabSw[i].pin) ){
         tabSw[i].etat = true;
@@ -110,7 +108,7 @@ k2000(30);
 }
 
 /* ************************************************************************ */
-/* a chaque appel de cette fonction on bascule l'état de la led             */
+/* A chaque appel de cette fonction on bascule l'état de la led             */
 /* ************************************************************************ */
 void flipLed()
 {
@@ -207,17 +205,93 @@ void k2000(int tempo)
       }
       delay(tempo);
     }
+}
 
+/* ************************************************** */
+/* feux standard                                      */
+void sequence()
+{
+    static int couleur = 0;
+    static int numFeu  = 0;
+    static int tempo = 5;
 
+    switch(couleur){
+      case 0: digitalWrite(tabFeu[numFeu].ledRouge,  OFF);
+              digitalWrite(tabFeu[numFeu].ledOrange, OFF);
+              digitalWrite(tabFeu[numFeu].ledVert,   ON);
+              if (--tempo <= 0 ) {
+                tempo = 3; // Tempo orange
+                couleur++;
+              }
+              break;
+      case 1: digitalWrite(tabFeu[numFeu].ledRouge,  OFF);
+              digitalWrite(tabFeu[numFeu].ledOrange, ON);
+              digitalWrite(tabFeu[numFeu].ledVert,   OFF);
+              if (--tempo <= 0 ) {
+                tempo = 1; // Tempo rouge
+                couleur++;
+              }
+              break;
+      case 2: digitalWrite(tabFeu[numFeu].ledRouge,  ON);
+              digitalWrite(tabFeu[numFeu].ledOrange, OFF);
+              digitalWrite(tabFeu[numFeu].ledVert,   OFF);
+              if (--tempo <= 0 ) {
+                tempo = 10; // Tempo vert
+                couleur=0;
 
-
+                if (++numFeu == NB_FEU){ 
+                  numFeu = 0;
+                }
+              }
+              
+              break;
+      default: break;
+    }
 
 }
 
 
 /* ************************************************** */
 /*                                                    */
-void sequence()
+void sequence_3()
+{
+  static bool bRouge = false ;
+  static bool bOrange = false ;
+  static bool bVert   = false ;
+    if (tabSw[2].etat){ tabSw[2].etat = false; bVert = true;  bOrange = false; bRouge = false;}
+    if (tabSw[1].etat){ tabSw[1].etat = false; bVert = false; bOrange = true;  bRouge = false;}
+    if (tabSw[0].etat){ tabSw[0].etat = false; bVert = false; bOrange = false; bRouge = true;}
+
+    static int etat=0;
+    if (etat==0){
+      digitalWrite(tabFeu[9].ledRouge,  OFF);
+      digitalWrite(tabFeu[9].ledOrange,  OFF);
+      digitalWrite(tabFeu[9].ledVert,  OFF);
+    }else{
+      digitalWrite(tabFeu[etat-1].ledRouge,  OFF);
+      digitalWrite(tabFeu[etat-1].ledOrange,  OFF);
+      digitalWrite(tabFeu[etat-1].ledVert,  OFF);
+    }
+    if (bRouge){
+      digitalWrite(tabFeu[etat].ledRouge,  ON);
+    }
+    
+    if (bOrange){
+      digitalWrite(tabFeu[etat].ledOrange,  ON);
+    }
+
+    if (bVert){
+      digitalWrite(tabFeu[etat].ledVert,  ON);
+    }
+
+    if (++etat == NB_FEU){
+      etat = 0;
+    }
+}
+
+/* ************************************************** */
+/*                                                    */
+void sequence2()
 {
   static int nextFeu = 0;
   static int tempo = 10 ;
