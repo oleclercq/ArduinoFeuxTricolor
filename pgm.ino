@@ -1,28 +1,37 @@
 #include "assigne.h"
 
-
+void flipLed();
 void cligno_orange(int tempo);
 void cligno_all(int tempo);
 void aleatoire(int tempo);
 void k2000(int tempo);
 void test_sw();
+void AffValeur(unsigned char valeur);
+void GestionBouton(void);
 
 #define EACH_DEMI_SECONDE (50) // 5ms * 100 = 500ms
 
 enum MODE { VERT, ORANGE, ROUGE};
 enum MODE gMode = VERT;
 
+unsigned char gCurrentState = 0;
+int gTicks =0;
+
 struct ST_FEU { unsigned char ledRouge;
                 unsigned char ledOrange;
                 unsigned char ledVert;};
 
 struct ST_SW {  unsigned char pin;
-                bool etat; };
+                bool etat; 
+                bool dernierEtatLu;
+                bool etatStable;
+                bool action;
+                int debutRebond; };
 
-struct ST_SW tabSw[NB_SW] { SW1, OFF,
-                            SW2, OFF,
-                            SW3, OFF,
-                            SW4, OFF };
+struct ST_SW tabSw[NB_SW] { SW1, OFF,HIGH,HIGH, false, 0,
+                            SW2, OFF,HIGH,HIGH, false, 0,
+                            SW3, OFF,HIGH,HIGH, false, 0,
+                            SW4, OFF,HIGH,HIGH, false, 0 };
 
 struct ST_FEU tabFeu[NB_FEU_MAX] = {  ROUGE_1, ORANGE_1, VERT_1,
                                   ROUGE_2, ORANGE_2, VERT_2,
@@ -47,7 +56,7 @@ for (int i=0 ; i<NB_FEU_MAX ; i++){
   pinMode(tabFeu[i].ledOrange, OUTPUT);
   pinMode(tabFeu[i].ledVert,   OUTPUT);
 
-  digitalWrite(tabFeu[i].ledRouge,  ON);
+  digitalWrite(tabFeu[i].ledRouge,  OFF);
   digitalWrite(tabFeu[i].ledOrange, OFF);
   digitalWrite(tabFeu[i].ledVert,   OFF);
 }
@@ -77,21 +86,59 @@ for (int i=0 ; i<NB_SW ; i++){
 /* ************************************************************************ */
 ISR(TIMER1_COMPA_vect) // 16 bit timer 1 compare 1A match
 {
-    static uint16_t iDemiSeconde = EACH_DEMI_SECONDE;
-    if (--iDemiSeconde == 0 ) {
-        flipLed();
-        sequence();
-        iDemiSeconde = EACH_DEMI_SECONDE ;
-    }
+  static uint16_t iDemiSeconde = EACH_DEMI_SECONDE;
+  if (--iDemiSeconde == 0 ) {
+    flipLed();
+    //sequence();
+    iDemiSeconde = EACH_DEMI_SECONDE ;
+    //GestionBouton();
+  }
+  gTicks++;
+  //GestionBouton();
+/*  
+      if (tabSw[0].etat){
+        gCurrentState++;
+        tabSw[0].etat = false;
+      }
 
-    for (int i=0 ; i<NB_SW ; i++) {
-       if (tabSw[i].etat){
-        //digitalWrite(tabFeu[i].ledOrange, ON );
-        tabSw[i].etat = false;
-    }
-    };
+      if (tabSw[1].etat){
+        if (gCurrentState >0) {
+          gCurrentState --;
+        }
+        tabSw[1].etat = false;
+      }
+
+      if (tabSw[3].etat){
+        gCurrentState = 0;
+        tabSw[3].etat = false;
+      }
+*/
 }
 
+/* ************************************************************************ */
+/* Que des traitement rapide dans cette fonction */
+/* ************************************************************************ */
+void GestionBouton(void)
+{
+
+
+// detection du front montant
+// on attend le front descendant pour valider
+// puis apres un certain temps on autorise 
+
+/*
+
+    int i=0;
+    if (tabSw[i].etat)
+    {
+        if (tabSw[i].compteur++  >= 20)
+        {
+            tabSw[i].value = true;
+            tabSw[i].compteur = 0;
+            tabSw[i].etat = false;
+        }
+    }*/
+}
 
 /* ************************************************** */
 /*                                                    */
@@ -100,9 +147,70 @@ void loop() {
 //cligno_all(250,0);
 //aleatoire(100);
 //k2000(30);
-  for (int i=0 ; i<NB_SW ; i++) {
+  /*for (int i=0 ; i<NB_SW ; i++) {
     if (!digitalRead(tabSw[i].pin) ){
         tabSw[i].etat = true;
+    }else {
+      tabSw[i].etat = false;
+      tabSw[i].compteur = 0;
+    }
+  }
+
+  if (tabSw[0].value) {
+    gCurrentState++;
+    tabSw[0].value = false ;
+  }
+*/
+  for (int i=0 ; i<NB_SW ; i++) {
+    //static bool etatStable = HIGH;
+    //static bool dernierEtatLu = HIGH;
+    //static uint32_t debutRebond = 0;
+
+    bool etatLu = digitalRead(tabSw[i].pin);
+
+    // Changement détecté
+    if (etatLu != tabSw[i].dernierEtatLu)
+    {
+        tabSw[i].dernierEtatLu = etatLu;
+        tabSw[i].debutRebond = gTicks;
+    }
+
+    // Etat stable depuis suffisamment longtemps ?
+    if ((gTicks - tabSw[i].debutRebond) >= 10)
+    {
+        if (tabSw[i].etatStable != tabSw[i].dernierEtatLu)
+        {
+            bool ancienEtat = tabSw[i].etatStable;
+            tabSw[i].etatStable = tabSw[i].dernierEtatLu;
+
+            // Validation au relâchement
+            if (ancienEtat == LOW && tabSw[i].etatStable == HIGH)
+            {
+              tabSw[i].action = true ;
+              
+            }
+        }
+    }
+  
+    if (tabSw[0].action){gCurrentState++;}
+    if (tabSw[1].action){gCurrentState--;}
+    if (tabSw[3].action){gCurrentState =0;}
+    
+    AffValeur(gCurrentState);
+}
+
+
+
+/* ************************************************************************ */
+/* A chaque appel de cette fonction on bascule l'état de la led             */
+/* ************************************************************************ */
+void AffValeur(unsigned char valeur)
+{
+  for (int i = 0; i < 8; i++) {
+    if (valeur & (1 << i)) { // Bit à 1
+      digitalWrite(tabFeu[i].ledOrange, ON );
+    } else { // Bit à 0
+      digitalWrite(tabFeu[i].ledOrange, OFF );
     }
   }
 }
