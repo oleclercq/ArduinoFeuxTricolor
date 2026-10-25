@@ -10,12 +10,14 @@ void AffValeur(unsigned char valeur);
 void GestionBouton(void);
 
 #define EACH_DEMI_SECONDE (50) // 5ms * 100 = 500ms
+#define MENU_MAX  7
 
 enum MODE { VERT, ORANGE, ROUGE};
 enum MODE gMode = VERT;
 
 unsigned char gCurrentState = 0;
-int gTicks =0;
+volatile uint32_t gTicks = 0;
+volatile uint32_t gVal = 0;
 
 struct ST_FEU { unsigned char ledRouge;
                 unsigned char ledOrange;
@@ -26,7 +28,7 @@ struct ST_SW {  unsigned char pin;
                 bool dernierEtatLu;
                 bool etatStable;
                 bool action;
-                int debutRebond; };
+                uint32_t  debutRebond; };
 
 struct ST_SW tabSw[NB_SW] { SW1, OFF,HIGH,HIGH, false, 0,
                             SW2, OFF,HIGH,HIGH, false, 0,
@@ -50,6 +52,8 @@ struct ST_FEU tabFeu[NB_FEU_MAX] = {  ROUGE_1, ORANGE_1, VERT_1,
 void setup() {
   // put your setup code here, to run once:
   pinMode(LED_BUILTIN, OUTPUT);
+
+  Serial.begin(9600);
 
 for (int i=0 ; i<NB_FEU_MAX ; i++){
   pinMode(tabFeu[i].ledRouge,  OUTPUT);
@@ -94,6 +98,7 @@ ISR(TIMER1_COMPA_vect) // 16 bit timer 1 compare 1A match
     //GestionBouton();
   }
   gTicks++;
+  gVal++;
   //GestionBouton();
 /*  
       if (tabSw[0].etat){
@@ -143,7 +148,18 @@ void GestionBouton(void)
 /* ************************************************** */
 /*                                                    */
 void loop() {
-//cligno_orange(500);
+  /*
+switch (gCurrentState){
+  case 0: break; 
+  case 1: //cligno_orange(500); break; 
+  case 2: cligno_all(250,0); break; 
+  case 3: cligno_all(250,1); break; 
+  case 4: cligno_all(250,2); break; 
+  case 5: cligno_all(250,0); break; 
+  case 6: aleatoire(100); break; 
+  case 7: k2000(30); break; 
+}*/
+//cligno_orange(gCurrentState*10+10);
 //cligno_all(250,0);
 //aleatoire(100);
 //k2000(30);
@@ -174,45 +190,67 @@ void loop() {
         tabSw[i].dernierEtatLu = etatLu;
         tabSw[i].debutRebond = gTicks;
     }
-
     // Etat stable depuis suffisamment longtemps ?
-    if ((gTicks - tabSw[i].debutRebond) >= 10)
-    {
-        if (tabSw[i].etatStable != tabSw[i].dernierEtatLu)
-        {
-            bool ancienEtat = tabSw[i].etatStable;
-            tabSw[i].etatStable = tabSw[i].dernierEtatLu;
-
-            // Validation au relâchement
-            if (ancienEtat == LOW && tabSw[i].etatStable == HIGH)
-            {
-              tabSw[i].action = true ;
-              
-            }
+    if ((gTicks - tabSw[i].debutRebond) >= 10) {
+      if (tabSw[i].etatStable != tabSw[i].dernierEtatLu) {
+        bool ancienEtat = tabSw[i].etatStable;
+        tabSw[i].etatStable = tabSw[i].dernierEtatLu;
+        // Validation au relâchement
+        if (ancienEtat == LOW && tabSw[i].etatStable == HIGH) {
+          tabSw[i].action = true ;
         }
+      }
     }
-  
-    if (tabSw[0].action){gCurrentState++;}
-    if (tabSw[1].action){gCurrentState--;}
-    if (tabSw[3].action){gCurrentState =0;}
-    
-    AffValeur(gCurrentState);
+  }
+
+  //Serial.println(gCurrentState);
+  if (tabSw[0].action){
+    tabSw[0].action = false; 
+    Serial.println("BT_1");
+    gCurrentState++;
+    if (gCurrentState > MENU_MAX){
+      gCurrentState = 0; 
+      }; 
+    Serial.println(gCurrentState);
+    AffValeur(gCurrentState); 
+    }
+
+  if (tabSw[1].action){ 
+    tabSw[1].action = false; 
+    Serial.println("BT_2");
+    if (gCurrentState > 0){
+    gCurrentState--; 
+    }
+    AffValeur(gCurrentState); 
+    }
+  if (tabSw[2].action){tabSw[2].action = false; gCurrentState=0x80;  Serial.println("BT_3");
+  AffValeur(gCurrentState);
+   }
+  if (tabSw[3].action){tabSw[3].action = false; gCurrentState =0;  Serial.println("BT_4");
+  AffValeur(gCurrentState); 
+  }
+  //Serial.println(gCurrentState);
+  //AffValeur(gCurrentState);
 }
 
 
 
 /* ************************************************************************ */
-/* A chaque appel de cette fonction on bascule l'état de la led             */
+/*                                                                          */
 /* ************************************************************************ */
 void AffValeur(unsigned char valeur)
 {
-  for (int i = 0; i < 8; i++) {
-    if (valeur & (1 << i)) { // Bit à 1
-      digitalWrite(tabFeu[i].ledOrange, ON );
-    } else { // Bit à 0
-      digitalWrite(tabFeu[i].ledOrange, OFF );
+  static int oldValeur = 256;
+  if (oldValeur != valeur) {
+    for (int i = 0; i < 8; i++) {
+      if (valeur & (1 << i)) { // Bit à 1
+        digitalWrite(tabFeu[i].ledOrange, ON );
+      } else { // Bit à 0
+        digitalWrite(tabFeu[i].ledOrange, OFF );
+      }
     }
   }
+  // Serial.println(valeur);
 }
 
 /* ************************************************************************ */
@@ -236,16 +274,21 @@ void flipLed()
 /*                                                    */
 void cligno_orange(int tempo)
 {
-  for (int i=0 ; i<NB_FEU ; i++){
-    digitalWrite(tabFeu[i].ledOrange, ON); 
+  static bool sens = false ;
+
+  if (gVal >= tempo ){
+    for (int i=0 ; i<NB_FEU ; i++){
+        digitalWrite(tabFeu[i].ledOrange, sens); 
+    }
+
+    if (sens){
+      sens = false;
+    } else {
+      sens = true;
+    }
+    gVal = 0;
   }
-  delay(tempo);
-   
-  for (int i=0 ; i<NB_FEU ; i++){
-   digitalWrite(tabFeu[i].ledOrange, OFF); 
-  }
-  delay(tempo);
-  }
+}
   
 
 /* ************************************************** */
