@@ -36,7 +36,7 @@
 #define VERT_3  53   // OK 
 
 #define SW1   44
-#define SW2   35
+#define SW2 35
 #define SW3    7
 #define SW4    3
 

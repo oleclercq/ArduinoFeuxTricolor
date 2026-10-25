@@ -7,7 +7,12 @@ void aleatoire(int tempo);
 void k2000(int tempo);
 void test_sw();
 void AffValeur(unsigned char valeur);
-void GestionBouton(void);
+
+void acion_1();
+void acion_2();
+void acion_3();
+void acion_4();
+
 
 #define EACH_DEMI_SECONDE (50) // 5ms * 100 = 500ms
 #define MENU_MAX  7
@@ -16,8 +21,24 @@ enum MODE { VERT, ORANGE, ROUGE};
 enum MODE gMode = VERT;
 
 unsigned char gCurrentState = 0;
-volatile uint32_t gTicks = 0;
+
 volatile uint32_t gVal = 0;
+
+struct MenuItem
+{
+    const char *texte;
+    void (*action)();
+};
+
+MenuItem menu[] =
+{
+    {"Action 1", acion_1},
+    {"Action 2", acion_2},
+    {"Action 3", acion_3},
+    {"Action 4", acion_4}
+};
+
+const int NB_MENU = sizeof(menu) / sizeof(menu[0]);
 
 struct ST_FEU { unsigned char ledRouge;
                 unsigned char ledOrange;
@@ -28,12 +49,14 @@ struct ST_SW {  unsigned char pin;
                 bool dernierEtatLu;
                 bool etatStable;
                 bool action;
-                uint32_t  debutRebond; };
+                uint32_t  debutRebond; 
+                const char *texte;
+                void (*runaction);};
 
-struct ST_SW tabSw[NB_SW] { SW1, OFF,HIGH,HIGH, false, 0,
-                            SW2, OFF,HIGH,HIGH, false, 0,
-                            SW3, OFF,HIGH,HIGH, false, 0,
-                            SW4, OFF,HIGH,HIGH, false, 0 };
+struct ST_SW tabSw[NB_SW] { SW1, OFF,HIGH,HIGH, false, 0,"Action 1",acion_1
+                            SW2, OFF,HIGH,HIGH, false, 0,"Action 2",acion_2
+                            SW3, OFF,HIGH,HIGH, false, 0,"Action 3",acion_3
+                            SW4, OFF,HIGH,HIGH, false, 0 "Action 4",acion_4};
 
 struct ST_FEU tabFeu[NB_FEU_MAX] = {  ROUGE_1, ORANGE_1, VERT_1,
                                   ROUGE_2, ORANGE_2, VERT_2,
@@ -95,55 +118,26 @@ ISR(TIMER1_COMPA_vect) // 16 bit timer 1 compare 1A match
     flipLed();
     //sequence();
     iDemiSeconde = EACH_DEMI_SECONDE ;
-    //GestionBouton();
   }
-  gTicks++;
-  gVal++;
-  //GestionBouton();
-/*  
-      if (tabSw[0].etat){
-        gCurrentState++;
-        tabSw[0].etat = false;
-      }
-
-      if (tabSw[1].etat){
-        if (gCurrentState >0) {
-          gCurrentState --;
-        }
-        tabSw[1].etat = false;
-      }
-
-      if (tabSw[3].etat){
-        gCurrentState = 0;
-        tabSw[3].etat = false;
-      }
-*/
+  for (int i=0 ; i<NB_SW ; i++) {
+    if (tabSw[i].debutRebond > 0){
+      tabSw[i].debutRebond--;
+    }
+  }
 }
 
-/* ************************************************************************ */
-/* Que des traitement rapide dans cette fonction */
-/* ************************************************************************ */
-void GestionBouton(void)
-{
-
-
-// detection du front montant
-// on attend le front descendant pour valider
-// puis apres un certain temps on autorise 
-
-/*
-
-    int i=0;
-    if (tabSw[i].etat)
-    {
-        if (tabSw[i].compteur++  >= 20)
-        {
-            tabSw[i].value = true;
-            tabSw[i].compteur = 0;
-            tabSw[i].etat = false;
-        }
-    }*/
-}
+void acion_1() {
+  Serial.println("acion_1");
+ }
+void acion_2() {
+  Serial.println("acion_2");
+ }
+void acion_3() {
+  Serial.println("acion_3");
+ }
+void acion_4() {
+  Serial.println("acion_4");
+ }
 
 /* ************************************************** */
 /*                                                    */
@@ -188,11 +182,12 @@ switch (gCurrentState){
     if (etatLu != tabSw[i].dernierEtatLu)
     {
         tabSw[i].dernierEtatLu = etatLu;
-        tabSw[i].debutRebond = gTicks;
+        tabSw[i].debutRebond = 10;
     }
     // Etat stable depuis suffisamment longtemps ?
-    if ((gTicks - tabSw[i].debutRebond) >= 10) {
+    if ( tabSw[i].debutRebond-- == 0) {
       if (tabSw[i].etatStable != tabSw[i].dernierEtatLu) {
+        tabSw[i].debutRebond = 10;
         bool ancienEtat = tabSw[i].etatStable;
         tabSw[i].etatStable = tabSw[i].dernierEtatLu;
         // Validation au relâchement
@@ -203,6 +198,14 @@ switch (gCurrentState){
     }
   }
 
+
+  for (int i=0 ; i<NB_SW ; i++) {
+    if (tabSw[i].action){
+      tabSw[i].action = false; 
+      tabSw[i].runaction();
+    }
+  }
+/*
   //Serial.println(gCurrentState);
   if (tabSw[0].action){
     tabSw[0].action = false; 
@@ -231,6 +234,7 @@ switch (gCurrentState){
   }
   //Serial.println(gCurrentState);
   //AffValeur(gCurrentState);
+  */
 }
 
 
